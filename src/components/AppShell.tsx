@@ -21,8 +21,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <div className="font-display text-[1.75rem] tracking-wide text-paper sm:text-3xl">
               SKATESPOTTER
             </div>
-            <div className="mt-0.5 truncate text-[10px] uppercase tracking-[0.18em] text-mute sm:tracking-[0.28em]">
-              log it · skate it · share it
+            <div className="mt-0.5 text-[11px] leading-tight tracking-wide text-mute">
+              Skate it - Log it - Share it
             </div>
           </Link>
         </div>
