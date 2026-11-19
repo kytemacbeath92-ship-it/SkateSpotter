@@ -6,6 +6,7 @@ import { Camera, LocateFixed, MapPin } from "lucide-react";
 import MapView from "@/components/MapView";
 import { api } from "@/lib/client/api";
 import { getGps, type Coord } from "@/lib/client/geo";
+import { formatCoordAddress } from "@/lib/geo";
 import { fileToDataUrl } from "@/lib/client/image";
 import { PHOTO_CAP } from "@/lib/limits";
 import type { Spot } from "@/lib/types";
@@ -24,21 +25,11 @@ export default function AddPage() {
   const [status, setStatus] = useState("Use GPS or tap the map to lock the spot.");
   const [error, setError] = useState("");
 
-  async function lookup(coord: Coord) {
+  function lookup(coord: Coord) {
     setPin(coord);
-    setStatus("Reading the street from this pin…");
-    try {
-      const geo = await api<{ streetAddress: string; buildingName: string | null }>(
-        `/api/geo/reverse?lat=${coord.lat}&lng=${coord.lng}`,
-      );
-      setAddress(geo.streetAddress);
-      setBuilding(geo.buildingName);
-      setStatus("Location locked. Add photos and a description, then log it.");
-    } catch {
-      setAddress(`${coord.lat.toFixed(5)}, ${coord.lng.toFixed(5)}`);
-      setBuilding(null);
-      setStatus("GPS pin saved. Address lookup was unavailable, so coordinates will be used.");
-    }
+    setAddress(formatCoordAddress(coord.lat, coord.lng));
+    setBuilding(null);
+    setStatus("Location locked. Type a street or building name if you know it, then log it.");
   }
 
   async function addLocation() {
@@ -47,7 +38,7 @@ export default function AddPage() {
     try {
       const coord = await getGps();
       setHere(coord);
-      await lookup(coord);
+      lookup(coord);
     } catch (err) {
       setStatus("GPS is off or blocked. Tap the map to drop a pin, then drag it if you need to.");
       setError(
@@ -134,9 +125,27 @@ export default function AddPage() {
             <MapPin size={14} /> Pin
           </div>
           <div className="mt-2 break-words font-display text-3xl leading-none">{name}</div>
-          {building && address ? <p className="mt-1 text-sm text-mute">{address}</p> : null}
+          <label className="mt-3 block">
+            <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-mute">Street or building</span>
+            <input
+              value={building ?? address}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (!pin) return;
+                if (!value.trim() || value === formatCoordAddress(pin.lat, pin.lng)) {
+                  setBuilding(null);
+                  setAddress(formatCoordAddress(pin.lat, pin.lng));
+                  return;
+                }
+                setBuilding(value);
+              }}
+              placeholder="Love Park, south ledges…"
+              className="min-h-12 w-full rounded-full border border-line bg-ink px-4 text-base outline-none"
+            />
+          </label>
           <p className="mt-2 text-xs text-mute">
-            This street or building name stays until someone else logs a common name for the spot.
+            This name stays until someone else logs a common name for the spot. Location stays on-device until you
+            post it.
           </p>
         </div>
         <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full border border-line bg-elev px-4 text-base">

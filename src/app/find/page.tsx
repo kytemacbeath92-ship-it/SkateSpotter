@@ -14,6 +14,7 @@ import {
   watchGps,
   type Coord,
 } from "@/lib/client/geo";
+import { localRoute } from "@/lib/geo";
 import type { RouteInfo, Spot } from "@/lib/types";
 
 export default function FindPage() {
@@ -69,7 +70,7 @@ function FindPageInner() {
     return watchGps(setHere, (err) => setError(err.message));
   }, [tracking]);
 
-  async function loadRoute(spot: Spot, from = here, mode = profile) {
+  function loadRoute(spot: Spot, from = here, mode = profile) {
     setSelected(spot);
     setError("");
     if (!from) {
@@ -77,25 +78,14 @@ function FindPageInner() {
       setError("Turn on GPS or tap the map to set your start point, then pick a spot.");
       return;
     }
-    setBusy(true);
-    try {
-      const data = await api<RouteInfo>(
-        `/api/geo/route?fromLat=${from.lat}&fromLng=${from.lng}&toLat=${spot.lat}&toLng=${spot.lng}&profile=${mode}`,
-      );
-      setRoute(data);
-    } catch (err) {
-      setRoute(null);
-      setError(err instanceof Error ? err.message : "Could not build a route");
-    } finally {
-      setBusy(false);
-    }
+    setRoute(localRoute(from, { lat: spot.lat, lng: spot.lng }, mode));
   }
 
   useEffect(() => {
     if (!selected) return;
     const delay = tracking ? 2000 : 200;
     const timer = setTimeout(() => {
-      void loadRoute(selected, here, profile);
+      loadRoute(selected, here, profile);
     }, delay);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
