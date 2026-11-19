@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const viewer = await getViewer(request);
   return json(
-    { id: viewer.id, name: viewer.name, simulated: viewer.simulated },
+    { name: viewer.name, simulated: viewer.simulated },
     {},
     viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
   );
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
   const saved = await setDisplayName(viewer.id, name);
   return json(
-    { id: viewer.id, name: saved, simulated: viewer.simulated },
+    { name: saved, simulated: viewer.simulated },
     {},
     viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
   );

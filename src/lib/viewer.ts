@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { getIdentity } from "../../cursor/identity.js";
 import { sql } from "./db";
 import { clampText } from "./http";
@@ -28,9 +29,8 @@ export async function getViewer(request: Request): Promise<Viewer> {
     sid = crypto.randomUUID();
     setCookie = `${COOKIE}=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`;
   }
-  const id = `guest:${sid}`;
-  const headerName = clampText(request.headers.get("x-display-name"), 40);
-  const name = await profileName(id, headerName || "Skater");
+  const id = `guest:${createHash("sha256").update(sid).digest("hex")}`;
+  const name = await profileName(id, "Skater");
   return { id, name, simulated: false, setCookie };
 }
 

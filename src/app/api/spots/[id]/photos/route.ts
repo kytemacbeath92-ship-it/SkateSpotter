@@ -1,7 +1,7 @@
 import { sql } from "@/lib/db";
 import { clampText, errorJson, json } from "@/lib/http";
 import { parseDataUrl } from "@/lib/image";
-import { getSpot, serializePhoto, type PhotoRow } from "@/lib/spots";
+import { countUserPhotos, getSpot, PHOTO_CAP, serializePhoto, type PhotoRow } from "@/lib/spots";
 import { getViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,14 @@ export async function POST(
   if (!body || typeof body !== "object") return errorJson("Invalid body");
   const input = body as Record<string, unknown>;
   const kind = input.kind === "trick" ? "trick" : "spot";
+  const used = await countUserPhotos(id, viewer.id, kind);
+  if (used >= PHOTO_CAP) {
+    return errorJson(
+      kind === "trick"
+        ? "You can upload 5 trick photos at this spot"
+        : "You can upload 5 spot photos at this spot",
+    );
+  }
   const caption = clampText(input.caption, 240);
   let parsed;
   try {

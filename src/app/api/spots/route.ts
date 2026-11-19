@@ -2,7 +2,7 @@ import { sql } from "@/lib/db";
 import { reverseGeocode } from "@/lib/geoServer";
 import { clampText, errorJson, json, parseCoord, validLatLng } from "@/lib/http";
 import { parseDataUrl } from "@/lib/image";
-import { serializeSpot, type SpotRow } from "@/lib/spots";
+import { PHOTO_CAP, serializeSpot, type SpotRow } from "@/lib/spots";
 import { getViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     return errorJson("A GPS pin is required");
   }
   const description = clampText(input.description, 2000);
-  const photosIn = Array.isArray(input.photos) ? input.photos.slice(0, 6) : [];
+  const photosIn = Array.isArray(input.photos) ? input.photos.slice(0, PHOTO_CAP) : [];
   const parsedPhotos = [];
   try {
     for (const photo of photosIn) {

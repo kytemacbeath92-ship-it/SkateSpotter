@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Compass, MapPin, Plus } from "lucide-react";
+import ScreenName from "@/components/ScreenName";
 
 const tabs = [
   { href: "/", label: "Spots", icon: MapPin },
@@ -25,6 +26,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               Skate it - Log it - Share it
             </div>
           </Link>
+          <ScreenName />
         </div>
       </header>
       <main className="mx-auto w-full max-w-lg pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:max-w-6xl">

@@ -1,7 +1,9 @@
 import { errorJson, json } from "@/lib/http";
 import {
+  countUserPhotos,
   getSpot,
   listPhotos,
+  PHOTO_CAP,
   serializePhoto,
   serializeSpot,
   trickOfTheWeek,
@@ -20,6 +22,10 @@ export async function GET(
   if (!spot) return errorJson("Spot not found", 404);
   const photos = await listPhotos(id, viewer.id);
   const weekly = await trickOfTheWeek(id, viewer.id);
+  const [spotUsed, trickUsed] = await Promise.all([
+    countUserPhotos(id, viewer.id, "spot"),
+    countUserPhotos(id, viewer.id, "trick"),
+  ]);
   return json(
     {
       spot: serializeSpot(spot),
@@ -27,6 +33,10 @@ export async function GET(
       tricks: photos.filter((p) => p.kind === "trick").map(serializePhoto),
       trickOfTheWeek: weekly ? serializePhoto(weekly) : null,
       isOwner: spot.created_by === viewer.id,
+      photoCaps: {
+        spot: { used: spotUsed, max: PHOTO_CAP },
+        trick: { used: trickUsed, max: PHOTO_CAP },
+      },
     },
     {},
     viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,

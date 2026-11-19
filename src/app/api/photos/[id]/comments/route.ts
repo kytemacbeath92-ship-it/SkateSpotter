@@ -12,18 +12,14 @@ export async function GET(
   const { id } = await params;
   const comments = await sql<{
     id: string;
-    user_id: string;
     user_name: string;
     body: string;
     created_at: string;
-  }>("select id, user_id, user_name, body, created_at from comments where photo_id = $1 order by created_at asc", [
-    id,
-  ]);
+  }>("select id, user_name, body, created_at from comments where photo_id = $1 order by created_at asc", [id]);
   return json(
     {
       comments: comments.map((c) => ({
         id: c.id,
-        userId: c.user_id,
         userName: c.user_name,
         body: c.body,
         createdAt: c.created_at,
@@ -64,7 +60,6 @@ export async function POST(
     {
       comment: {
         id: commentId,
-        userId: viewer.id,
         userName: viewer.name,
         body: text,
         createdAt: new Date().toISOString(),

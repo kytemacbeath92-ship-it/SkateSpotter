@@ -7,6 +7,7 @@ import MapView from "@/components/MapView";
 import { api } from "@/lib/client/api";
 import { getGps, type Coord } from "@/lib/client/geo";
 import { fileToDataUrl } from "@/lib/client/image";
+import { PHOTO_CAP } from "@/lib/limits";
 import type { Spot } from "@/lib/types";
 
 type DraftPhoto = { dataUrl: string; caption: string };
@@ -62,10 +63,10 @@ export default function AddPage() {
   async function onPhotos(files: FileList | null) {
     if (!files) return;
     const next: DraftPhoto[] = [];
-    for (const file of Array.from(files).slice(0, 6 - photos.length)) {
+    for (const file of Array.from(files).slice(0, PHOTO_CAP - photos.length)) {
       next.push({ dataUrl: await fileToDataUrl(file), caption: "" });
     }
-    setPhotos((list) => [...list, ...next].slice(0, 6));
+    setPhotos((list) => [...list, ...next].slice(0, PHOTO_CAP));
   }
 
   async function submit(event: FormEvent) {
@@ -140,15 +141,20 @@ export default function AddPage() {
         </div>
         <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full border border-line bg-elev px-4 text-base">
           <Camera size={18} />
-          Add Photos
+          {photos.length >= PHOTO_CAP ? "Spot photo limit reached" : "Add Photos"}
           <input
             type="file"
             accept="image/*"
             multiple
             className="hidden"
+            disabled={photos.length >= PHOTO_CAP}
             onChange={(e) => onPhotos(e.target.files)}
           />
         </label>
+        <p className="text-xs text-mute">
+          Up to {PHOTO_CAP} photos when you log the spot. Trick photos have a separate {PHOTO_CAP}-photo cap after
+          it is posted.
+        </p>
         {photos.length > 0 ? (
           <div className="grid grid-cols-3 gap-2">
             {photos.map((photo, index) => (

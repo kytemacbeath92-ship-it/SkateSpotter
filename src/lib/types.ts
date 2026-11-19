@@ -5,11 +5,9 @@ export type Spot = {
   streetAddress: string;
   buildingName: string | null;
   commonName: string | null;
-  commonNameLoggedBy: string | null;
   name: string;
   nameIsCommon: boolean;
   description: string;
-  createdBy: string;
   createdByName: string;
   createdAt: string;
   coverPhotoId: string | null;
@@ -23,7 +21,6 @@ export type Photo = {
   spotId: string;
   kind: "spot" | "trick";
   caption: string;
-  createdBy: string;
   createdByName: string;
   createdAt: string;
   url: string;
@@ -34,14 +31,12 @@ export type Photo = {
 
 export type Comment = {
   id: string;
-  userId: string;
   userName: string;
   body: string;
   createdAt: string;
 };
 
 export type Viewer = {
-  id: string;
   name: string;
   simulated: boolean;
 };
