@@ -142,16 +142,22 @@ function FindPageInner() {
           Use GPS
         </button>
         <div className="grid grid-cols-3 gap-2">
-          {(["cycling", "walking", "driving"] as const).map((mode) => (
+          {(
+            [
+              { id: "cycling", label: "Skating" },
+              { id: "walking", label: "Walking" },
+              { id: "driving", label: "Driving" },
+            ] as const
+          ).map((mode) => (
             <button
-              key={mode}
+              key={mode.id}
               type="button"
-              onClick={() => setProfile(mode)}
+              onClick={() => setProfile(mode.id)}
               className={`min-h-11 rounded-full text-xs uppercase tracking-widest ${
-                profile === mode ? "bg-blaze text-ink" : "border border-line text-mute"
+                profile === mode.id ? "bg-blaze text-ink" : "border border-line text-mute"
               }`}
             >
-              {mode}
+              {mode.label}
             </button>
           ))}
         </div>
