@@ -2,7 +2,7 @@ import { sql } from "@/lib/db";
 import { clampText, errorJson, json } from "@/lib/http";
 import { normalizeCommonName } from "@/lib/spotName";
 import { getSpot, serializeSpot } from "@/lib/spots";
-import { getViewer } from "@/lib/viewer";
+import { requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   const { id } = await params;
   const spot = await getSpot(id);
   if (!spot) return errorJson("Spot not found", 404);
@@ -48,9 +49,5 @@ export async function POST(
     "select name, user_name, created_at from common_name_logs where spot_id = $1 order by created_at desc limit 12",
     [id],
   );
-  return json(
-    { spot: serializeSpot(updated!), logs },
-    {},
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
-  );
+  return json({ spot: serializeSpot(updated!), logs });
 }

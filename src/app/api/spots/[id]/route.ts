@@ -8,7 +8,7 @@ import {
   serializeSpot,
   trickOfTheWeek,
 } from "@/lib/spots";
-import { getViewer } from "@/lib/viewer";
+import { requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   const { id } = await params;
   const spot = await getSpot(id);
   if (!spot) return errorJson("Spot not found", 404);
@@ -38,7 +39,5 @@ export async function GET(
         trick: { used: trickUsed, max: PHOTO_CAP },
       },
     },
-    {},
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
   );
 }

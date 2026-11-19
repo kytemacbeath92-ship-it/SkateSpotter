@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 import { clampText, errorJson, json } from "@/lib/http";
-import { getViewer } from "@/lib/viewer";
+import { requireSignedIn, requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const denied = await requireSignedIn(request);
+  if (denied) return denied;
   const { id } = await params;
   const comments = await sql<{
     id: string;
@@ -25,8 +26,6 @@ export async function GET(
         createdAt: c.created_at,
       })),
     },
-    {},
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
   );
 }
 
@@ -34,7 +33,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   const { id } = await params;
   const photos = await sql<{ id: string }>("select id from photos where id = $1", [id]);
   if (!photos[0]) return errorJson("Photo not found", 404);
@@ -66,6 +66,5 @@ export async function POST(
       },
     },
     { status: 201 },
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
   );
 }

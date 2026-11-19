@@ -1,9 +1,12 @@
 import { routeTo } from "@/lib/geoServer";
 import { errorJson, json, parseCoord, validLatLng } from "@/lib/http";
+import { requireSignedIn } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const denied = await requireSignedIn(request);
+  if (denied) return denied;
   const url = new URL(request.url);
   const fromLat = parseCoord(url.searchParams.get("fromLat"));
   const fromLng = parseCoord(url.searchParams.get("fromLng"));

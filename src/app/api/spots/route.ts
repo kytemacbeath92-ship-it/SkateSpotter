@@ -3,12 +3,13 @@ import { reverseGeocode } from "@/lib/geoServer";
 import { clampText, errorJson, json, parseCoord, validLatLng } from "@/lib/http";
 import { parseDataUrl } from "@/lib/image";
 import { PHOTO_CAP, serializeSpot, type SpotRow } from "@/lib/spots";
-import { getViewer } from "@/lib/viewer";
+import { requireSignedIn, requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const viewer = await getViewer(request);
+  const denied = await requireSignedIn(request);
+  if (denied) return denied;
   const url = new URL(request.url);
   const q = clampText(url.searchParams.get("q"), 120).toLowerCase();
   const lat = parseCoord(url.searchParams.get("lat"));
@@ -35,15 +36,12 @@ export async function GET(request: Request) {
       }))
       .sort((a, b) => (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0));
   }
-  return json(
-    { spots },
-    {},
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
-  );
+  return json({ spots });
 }
 
 export async function POST(request: Request) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   let body: unknown;
   try {
     body = await request.json();
@@ -109,11 +107,7 @@ export async function POST(request: Request) {
   }
 
   const created = await sql<SpotRow>("select * from spots where id = $1", [id]);
-  return json(
-    { spot: serializeSpot(created[0]) },
-    { status: 201 },
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
-  );
+  return json({ spot: serializeSpot(created[0]) }, { status: 201 });
 }
 
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number) {
