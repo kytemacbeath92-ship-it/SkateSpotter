@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Compass, MapPin, Plus } from "lucide-react";
+import ProfileGate from "@/components/ProfileGate";
 import ScreenName from "@/components/ScreenName";
 
 const tabs = [
@@ -13,12 +14,13 @@ const tabs = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const onboarding = path === "/create-profile";
   return (
     <div className="min-h-dvh">
       <div className="grain" />
       <header className="sticky top-0 z-30 border-b border-line bg-ink/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex max-w-lg items-center px-4 py-2.5 md:max-w-6xl">
-          <Link href="/" className="min-w-0 leading-none">
+          <Link href={onboarding ? "/create-profile" : "/"} className="min-w-0 leading-none">
             <div className="font-display text-[1.75rem] tracking-wide text-paper sm:text-3xl">
               SKATESPOTTER
             </div>
@@ -26,12 +28,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               Skate it - Log it - Share it
             </div>
           </Link>
-          <ScreenName />
+          {onboarding ? null : <ScreenName />}
         </div>
       </header>
-      <main className="mx-auto w-full max-w-lg pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:max-w-6xl">
-        {children}
+      <main
+        className={`mx-auto w-full max-w-lg md:max-w-6xl ${
+          onboarding ? "pb-8" : "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
+        }`}
+      >
+        <ProfileGate>{children}</ProfileGate>
       </main>
+      {onboarding ? null : (
       <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
         <div className="mx-auto grid max-w-lg grid-cols-3 px-2 pt-1">
           {tabs.map((tab) => {
@@ -62,6 +69,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </div>
       </nav>
+      )}
     </div>
   );
 }
