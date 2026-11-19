@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { UserRound } from "lucide-react";
 import { api } from "@/lib/client/api";
@@ -15,6 +16,7 @@ export default function ScreenName() {
   useEffect(() => {
     api<Viewer>("/api/me")
       .then((me) => {
+        if (!me.complete) return;
         setName(me.name);
         setDraft(me.name);
       })
@@ -56,7 +58,7 @@ export default function ScreenName() {
           className="absolute right-0 top-full z-40 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-line bg-panel p-3 shadow-lg"
         >
           <p className="text-[11px] uppercase tracking-[0.16em] text-mute">Screen name</p>
-          <p className="mt-1 text-xs text-mute">Shown on spots, photos, and comments. Your account ID stays private.</p>
+          <p className="mt-1 text-xs text-mute">Shown on your profile, spots, and comments. Your account ID stays private.</p>
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -72,13 +74,13 @@ export default function ScreenName() {
             >
               {busy ? "Saving…" : "Save"}
             </button>
-            <button
-              type="button"
+            <Link
+              href="/profile"
               onClick={() => setOpen(false)}
-              className="min-h-10 rounded-full border border-line px-3 text-sm"
+              className="inline-flex min-h-10 items-center rounded-full border border-line px-3 text-sm"
             >
-              Close
-            </button>
+              Profile
+            </Link>
           </div>
         </form>
       ) : null}

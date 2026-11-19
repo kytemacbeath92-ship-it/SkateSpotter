@@ -36,8 +36,17 @@ export type Comment = {
   createdAt: string;
 };
 
+export type Ride = "skateboard" | "bike" | "scooter" | "rollerblades";
+
 export type Viewer = {
+  complete: boolean;
   name: string;
+  fullName?: string;
+  age?: number | null;
+  city?: string;
+  country?: string;
+  contact?: string;
+  ride?: Ride | "";
   simulated: boolean;
 };
 
