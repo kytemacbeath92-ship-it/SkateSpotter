@@ -135,118 +135,117 @@ export default function SpotDetail({
   }
 
   if (!data) {
-    return <div className="p-6 text-mute">{error || "Loading spot…"}</div>;
+    return <div className="p-4 text-mute">{error || "Loading spot…"}</div>;
   }
 
   const { spot } = data;
   const pendingCover = data.photos.find((p) => p.id === spot.pendingCoverPhotoId);
 
   return (
-    <div className="space-y-4 p-4 pb-8">
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="overflow-hidden rounded-3xl border border-line bg-elev">
-          <div className="h-64 lg:h-[420px]">
-            <MapView
-              spots={[{ id: spot.id, lat: spot.lat, lng: spot.lng, name: spot.name }]}
-              center={{ lat: spot.lat, lng: spot.lng }}
-              zoom={16}
-              selectedId={spot.id}
+    <div className="space-y-3 p-3 sm:space-y-4 sm:p-4">
+      <div className="rounded-2xl border border-line bg-panel p-4 sm:rounded-3xl sm:p-5">
+        <p className="text-xs uppercase tracking-[0.18em] text-gold">
+          {spot.nameIsCommon ? "Common name" : "Street / building name"}
+        </p>
+        <h1 className="mt-1 break-words font-display text-4xl leading-none sm:text-5xl">{spot.name}</h1>
+        {spot.nameIsCommon ? (
+          <p className="mt-2 text-sm text-mute">{spot.streetAddress}</p>
+        ) : (
+          <p className="mt-2 text-sm text-mute">
+            Waiting for someone else to log a common name. Until then this is the street or building.
+          </p>
+        )}
+        <p className="mt-3 whitespace-pre-wrap text-sm leading-6">
+          {spot.description || "No description has been shared yet."}
+        </p>
+        <p className="mt-3 text-xs text-mute">Logged by {spot.createdByName}</p>
+        <Link
+          href={`/find?spot=${spot.id}`}
+          className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-blaze px-4 text-base text-ink sm:w-auto"
+        >
+          <Navigation size={16} />
+          Find Location
+        </Link>
+        <form onSubmit={logCommonName} className="mt-4 space-y-2">
+          <label className="text-xs uppercase tracking-[0.2em] text-mute">Log a common name</label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              value={commonName}
+              onChange={(e) => setCommonName(e.target.value)}
+              placeholder="Love Park, The Banks…"
+              className="min-h-12 min-w-0 flex-1 rounded-full border border-line bg-ink px-4 text-base outline-none"
             />
+            <button className="min-h-12 rounded-full bg-paper px-5 text-base text-ink">Log</button>
           </div>
-        </div>
-        <div className="rounded-3xl border border-line bg-panel p-5">
-          <p className="text-xs uppercase tracking-[0.22em] text-gold">
-            {spot.nameIsCommon ? "Common name" : "Street / building name"}
-          </p>
-          <h1 className="mt-1 font-display text-5xl leading-none">{spot.name}</h1>
-          {spot.nameIsCommon ? (
-            <p className="mt-2 text-sm text-mute">{spot.streetAddress}</p>
-          ) : (
-            <p className="mt-2 text-sm text-mute">
-              Waiting for someone else to log a common name. Until then this is the street or building.
+          {me?.id === spot.createdBy ? (
+            <p className="text-xs text-mute">
+              You logged this spot, so a common name sticks only after someone else logs it.
             </p>
+          ) : (
+            <p className="text-xs text-mute">If this spot has no common name yet, yours becomes the name.</p>
           )}
-          <p className="mt-4 whitespace-pre-wrap text-sm leading-6">
-            {spot.description || "No description has been shared yet."}
-          </p>
-          <p className="mt-3 text-xs text-mute">Logged by {spot.createdByName}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href={`/find?spot=${spot.id}`}
-              className="inline-flex items-center gap-2 rounded-full bg-blaze px-4 py-2 text-sm text-ink"
-            >
-              <Navigation size={16} />
-              Find Location
-            </Link>
-          </div>
-          <form onSubmit={logCommonName} className="mt-5 space-y-2">
-            <label className="text-xs uppercase tracking-[0.2em] text-mute">Log a common name</label>
-            <div className="flex gap-2">
-              <input
-                value={commonName}
-                onChange={(e) => setCommonName(e.target.value)}
-                placeholder="Love Park, The Banks…"
-                className="flex-1 rounded-full border border-line bg-ink px-4 py-2 text-sm outline-none"
-              />
-              <button className="rounded-full bg-paper px-4 py-2 text-sm text-ink">Log</button>
-            </div>
-            {me?.id === spot.createdBy ? (
-              <p className="text-xs text-mute">
-                You logged this spot, so a common name sticks only after someone else logs it.
-              </p>
-            ) : (
-              <p className="text-xs text-mute">If this spot has no common name yet, yours becomes the name.</p>
-            )}
-          </form>
+        </form>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-line bg-elev sm:rounded-3xl">
+        <div className="h-40 sm:h-64 lg:h-[420px]">
+          <MapView
+            spots={[{ id: spot.id, lat: spot.lat, lng: spot.lng, name: spot.name }]}
+            center={{ lat: spot.lat, lng: spot.lng }}
+            zoom={16}
+            selectedId={spot.id}
+          />
         </div>
       </div>
 
       {data.isOwner && pendingCover ? (
-        <div className="flex items-center gap-3 rounded-3xl border border-gold/40 bg-elev p-3">
+        <div className="flex flex-col gap-3 rounded-2xl border border-gold/40 bg-elev p-3 sm:flex-row sm:items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={pendingCover.url} alt="" className="h-16 w-16 rounded-2xl object-cover" />
           <div className="flex-1 text-sm">
             Someone requested this as the new default photo. The first uploaded photo stays until you approve.
           </div>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => coverAction("approve")}
-            className="rounded-full bg-gold px-3 py-2 text-sm text-ink"
-          >
-            Approve
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => coverAction("reject")}
-            className="rounded-full border border-line px-3 py-2 text-sm"
-          >
-            Keep original
-          </button>
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => coverAction("approve")}
+              className="min-h-11 rounded-full bg-gold px-3 text-sm text-ink"
+            >
+              Approve
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => coverAction("reject")}
+              className="min-h-11 rounded-full border border-line px-3 text-sm"
+            >
+              Keep original
+            </button>
+          </div>
         </div>
       ) : null}
 
-      <div className="flex gap-2">
+      <div className="sticky top-14 z-20 -mx-3 grid grid-cols-2 gap-2 bg-ink/95 px-3 py-2 backdrop-blur sm:static sm:mx-0 sm:px-0 sm:py-0">
         <button
           type="button"
           onClick={() => setTab("spot")}
-          className={`rounded-full px-4 py-2 text-sm ${tab === "spot" ? "bg-paper text-ink" : "border border-line"}`}
+          className={`min-h-11 rounded-full text-sm ${tab === "spot" ? "bg-paper text-ink" : "border border-line bg-elev"}`}
         >
           Spot photos
         </button>
         <button
           type="button"
           onClick={() => setTab("trick")}
-          className={`rounded-full px-4 py-2 text-sm ${tab === "trick" ? "bg-paper text-ink" : "border border-line"}`}
+          className={`min-h-11 rounded-full text-sm ${tab === "trick" ? "bg-paper text-ink" : "border border-line bg-elev"}`}
         >
           Trick photos
         </button>
       </div>
 
-      <div className="rounded-3xl border border-line bg-elev p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-blaze px-4 py-2 text-sm text-ink">
+      <div className="rounded-2xl border border-line bg-elev p-3 sm:rounded-3xl sm:p-4">
+        <div className="flex flex-col gap-2">
+          <label className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-blaze px-4 text-base text-ink">
             <Camera size={16} />
             {tab === "trick" ? "Upload Trick Photo" : "Add Photos"}
             <input
@@ -263,7 +262,7 @@ export default function SpotDetail({
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder={tab === "trick" ? "What trick was this?" : "Optional caption"}
-            className="min-w-56 flex-1 rounded-full border border-line bg-ink px-4 py-2 text-sm outline-none"
+            className="min-h-12 w-full rounded-full border border-line bg-ink px-4 text-base outline-none"
           />
         </div>
         {tab === "trick" ? (
@@ -279,7 +278,7 @@ export default function SpotDetail({
 
       {error ? <p className="text-sm text-blaze">{error}</p> : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4">
         {album.map((photo) => (
           <PhotoCard
             key={photo.id}
@@ -293,7 +292,7 @@ export default function SpotDetail({
                 <button
                   type="button"
                   onClick={() => coverAction("request", photo.id)}
-                  className="rounded-full px-3 py-1 text-xs uppercase tracking-widest text-mute"
+                  className="min-h-11 rounded-full px-3 text-xs uppercase tracking-widest text-mute"
                 >
                   {data.isOwner ? "Make cover" : "Request cover"}
                 </button>

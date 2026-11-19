@@ -20,7 +20,7 @@ export default function AddPage() {
   const [description, setDescription] = useState("");
   const [photos, setPhotos] = useState<DraftPhoto[]>([]);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState("Drop a pin or use GPS to lock the spot.");
+  const [status, setStatus] = useState("Use GPS or tap the map to lock the spot.");
   const [error, setError] = useState("");
 
   async function lookup(coord: Coord) {
@@ -98,9 +98,24 @@ export default function AddPage() {
   const name = building || address || "Waiting for a pin";
 
   return (
-    <form onSubmit={submit} className="grid gap-4 p-4 lg:grid-cols-[1.15fr_0.85fr]">
-      <section className="overflow-hidden rounded-3xl border border-line bg-elev">
-        <div className="h-[46vh] min-h-[260px] lg:h-[calc(100dvh-10rem)]">
+    <form onSubmit={submit} className="flex flex-col gap-3 p-3 sm:p-4 lg:grid lg:grid-cols-[1.15fr_0.85fr] lg:gap-4">
+      <section className="space-y-3 lg:order-2">
+        <div>
+          <h1 className="font-display text-4xl leading-none sm:text-5xl">Add a spot</h1>
+          <p className="mt-1 text-sm text-mute">{status}</p>
+        </div>
+        <button
+          type="button"
+          onClick={addLocation}
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-blaze px-4 text-base font-medium text-ink"
+        >
+          <LocateFixed size={18} />
+          {busy ? "Pinpointing…" : "Add Location"}
+        </button>
+        {error ? <p className="text-sm text-blaze">{error}</p> : null}
+      </section>
+      <section className="overflow-hidden rounded-2xl border border-line bg-elev sm:rounded-3xl lg:order-1 lg:row-span-2">
+        <div className="h-[34vh] min-h-[200px] max-h-[280px] lg:h-[calc(100dvh-10rem)] lg:max-h-none">
           <MapView
             spots={[]}
             center={pin || here || { lat: 40.73061, lng: -73.935242 }}
@@ -112,31 +127,18 @@ export default function AddPage() {
           />
         </div>
       </section>
-      <section className="space-y-4">
-        <div>
-          <h1 className="font-display text-5xl leading-none">Add a spot</h1>
-          <p className="mt-1 text-sm text-mute">{status}</p>
-        </div>
-        <button
-          type="button"
-          onClick={addLocation}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-blaze px-4 py-3 font-medium text-ink"
-        >
-          <LocateFixed size={18} />
-          {busy ? "Pinpointing…" : "Add Location"}
-        </button>
-        {error ? <p className="text-sm text-blaze">{error}</p> : null}
-        <div className="rounded-3xl border border-line bg-panel p-4">
+      <section className="space-y-3 lg:order-3 lg:col-start-2">
+        <div className="rounded-2xl border border-line bg-panel p-4 sm:rounded-3xl">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-mute">
             <MapPin size={14} /> Pin
           </div>
-          <div className="mt-2 font-display text-3xl leading-none">{name}</div>
+          <div className="mt-2 break-words font-display text-3xl leading-none">{name}</div>
           {building && address ? <p className="mt-1 text-sm text-mute">{address}</p> : null}
           <p className="mt-2 text-xs text-mute">
             This street or building name stays until someone else logs a common name for the spot.
           </p>
         </div>
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-line bg-elev px-4 py-3">
+        <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full border border-line bg-elev px-4 text-base">
           <Camera size={18} />
           Add Photos
           <input
@@ -167,19 +169,20 @@ export default function AddPage() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={5}
+            rows={4}
             placeholder="Ledgers, cops, best time of day, how to get in…"
-            className="w-full rounded-3xl border border-line bg-elev px-4 py-3 outline-none placeholder:text-mute"
+            className="w-full rounded-2xl border border-line bg-elev px-4 py-3 text-base outline-none placeholder:text-mute"
           />
         </label>
-        {error ? <p className="text-sm text-blaze">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-full bg-paper py-3 font-medium text-ink disabled:opacity-60"
-        >
-          {busy ? "Logging…" : "Log this spot"}
-        </button>
+        <div className="sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 bg-gradient-to-t from-ink via-ink to-transparent pt-3">
+          <button
+            type="submit"
+            disabled={busy}
+            className="min-h-12 w-full rounded-full bg-paper text-base font-medium text-ink disabled:opacity-60"
+          >
+            {busy ? "Logging…" : "Log this spot"}
+          </button>
+        </div>
       </section>
     </form>
   );

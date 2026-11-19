@@ -18,7 +18,7 @@ import type { RouteInfo, Spot } from "@/lib/types";
 
 export default function FindPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-mute">Loading spots…</div>}>
+    <Suspense fallback={<div className="p-4 text-mute">Loading spots…</div>}>
       <FindPageInner />
     </Suspense>
   );
@@ -121,9 +121,43 @@ function FindPageInner() {
   }, [here, selected, spots]);
 
   return (
-    <div className="grid gap-4 p-4 lg:grid-cols-[1.15fr_0.85fr]">
-      <section className="overflow-hidden rounded-3xl border border-line bg-elev">
-        <div className="h-[46vh] min-h-[260px] lg:h-[calc(100dvh-10rem)]">
+    <div className="flex flex-col gap-3 p-3 sm:p-4 lg:grid lg:grid-cols-[1.15fr_0.85fr] lg:gap-4">
+      <section className="space-y-3 lg:order-2">
+        <div>
+          <h1 className="font-display text-4xl leading-none sm:text-5xl">Find Location</h1>
+          <p className="mt-1 text-sm text-mute">Search a spot, then use GPS for the quickest route.</p>
+        </div>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search a spot, street, or building…"
+          className="min-h-12 w-full rounded-full border border-line bg-elev px-4 text-base outline-none placeholder:text-mute"
+        />
+        <button
+          type="button"
+          onClick={pinpoint}
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-line bg-panel px-4 text-base"
+        >
+          <LocateFixed size={18} />
+          Use GPS
+        </button>
+        <div className="grid grid-cols-3 gap-2">
+          {(["cycling", "walking", "driving"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setProfile(mode)}
+              className={`min-h-11 rounded-full text-xs uppercase tracking-widest ${
+                profile === mode ? "bg-blaze text-ink" : "border border-line text-mute"
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      </section>
+      <section className="overflow-hidden rounded-2xl border border-line bg-elev sm:rounded-3xl lg:order-1 lg:row-span-2">
+        <div className="h-[34vh] min-h-[200px] max-h-[280px] lg:h-[calc(100dvh-10rem)] lg:max-h-none">
           <MapView
             spots={spots}
             center={center}
@@ -141,45 +175,11 @@ function FindPageInner() {
           />
         </div>
       </section>
-      <section className="space-y-4">
-        <div>
-          <h1 className="font-display text-5xl leading-none">Find Location</h1>
-          <p className="mt-1 text-sm text-mute">
-            Search logged spots, then use GPS for the quickest route.
-          </p>
-        </div>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search a spot, street, or building…"
-          className="w-full rounded-full border border-line bg-elev px-5 py-3 outline-none placeholder:text-mute"
-        />
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={pinpoint}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full border border-line bg-panel px-3 py-2 text-sm"
-          >
-            <LocateFixed size={16} />
-            Use GPS
-          </button>
-          {(["cycling", "walking", "driving"] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setProfile(mode)}
-              className={`rounded-full px-3 py-2 text-xs uppercase tracking-widest ${
-                profile === mode ? "bg-blaze text-ink" : "border border-line text-mute"
-              }`}
-            >
-              {mode}
-            </button>
-          ))}
-        </div>
+      <section className="space-y-3 lg:order-3 lg:col-start-2">
         {selected && route ? (
-          <div className="rounded-3xl border border-blaze/40 bg-panel p-4">
+          <div className="rounded-2xl border border-blaze/40 bg-panel p-4 sm:rounded-3xl">
             <div className="text-xs uppercase tracking-[0.2em] text-gold">Quickest route</div>
-            <div className="mt-1 font-display text-3xl leading-none">{selected.name}</div>
+            <div className="mt-1 break-words font-display text-3xl leading-none">{selected.name}</div>
             <p className="mt-2 text-sm">
               {formatDistance(route.distanceMeters)} · {formatDuration(route.durationSeconds)}
             </p>
@@ -187,7 +187,7 @@ function FindPageInner() {
               <button
                 type="button"
                 onClick={() => setTracking(true)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-blaze px-3 py-2 text-sm text-ink"
+                className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-blaze px-3 text-sm text-ink"
               >
                 <Navigation size={16} />
                 {tracking ? "Tracking GPS" : "Track this spot"}
@@ -196,19 +196,19 @@ function FindPageInner() {
                 href={googleMapsDir(selected, here)}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-line px-3 py-2 text-sm"
+                className="inline-flex min-h-12 min-w-16 items-center justify-center rounded-full border border-line px-3 text-sm"
               >
                 Maps
               </a>
             </div>
-            <ol className="mt-3 max-h-40 space-y-1 overflow-auto text-sm text-mute">
+            <ol className="mt-3 max-h-32 space-y-1 overflow-auto text-sm text-mute">
               {route.steps.slice(0, 12).map((step, index) => (
                 <li key={index}>
                   {step.instruction} · {formatDistance(step.distanceMeters)}
                 </li>
               ))}
             </ol>
-            <Link href={`/spots/${selected.id}`} className="mt-3 inline-block text-sm text-gold">
+            <Link href={`/spots/${selected.id}`} className="mt-3 inline-flex min-h-11 items-center text-sm text-gold">
               Open spot details
             </Link>
           </div>
@@ -220,18 +220,18 @@ function FindPageInner() {
               key={spot.id}
               type="button"
               onClick={() => setSelected(spot)}
-              className={`flex w-full items-center gap-3 rounded-3xl border p-2 text-left ${
+              className={`flex min-h-[4.5rem] w-full items-center gap-3 rounded-2xl border p-2 text-left sm:rounded-3xl ${
                 selected?.id === spot.id ? "border-blaze bg-elev" : "border-line bg-panel"
               }`}
             >
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-ink">
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-ink">
                 {spot.coverUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={spot.coverUrl} alt="" className="h-full w-full object-cover" />
                 ) : null}
               </div>
               <div className="min-w-0">
-                <div className="truncate font-display text-2xl leading-none">{spot.name}</div>
+                <div className="truncate font-display text-[1.55rem] leading-none">{spot.name}</div>
                 <p className="truncate text-xs text-mute">{spot.streetAddress}</p>
                 {spot.distanceMeters != null ? (
                   <p className="text-xs text-gold">{formatDistance(spot.distanceMeters)}</p>
