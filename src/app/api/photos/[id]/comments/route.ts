@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 import { clampText, errorJson, json } from "@/lib/http";
-import { getViewer } from "@/lib/viewer";
+import { requireSignedIn, requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -8,29 +8,24 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const denied = await requireSignedIn(request);
+  if (denied) return denied;
   const { id } = await params;
   const comments = await sql<{
     id: string;
-    user_id: string;
     user_name: string;
     body: string;
     created_at: string;
-  }>("select id, user_id, user_name, body, created_at from comments where photo_id = $1 order by created_at asc", [
-    id,
-  ]);
+  }>("select id, user_name, body, created_at from comments where photo_id = $1 order by created_at asc", [id]);
   return json(
     {
       comments: comments.map((c) => ({
         id: c.id,
-        userId: c.user_id,
         userName: c.user_name,
         body: c.body,
         createdAt: c.created_at,
       })),
     },
-    {},
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
   );
 }
 
@@ -38,7 +33,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   const { id } = await params;
   const photos = await sql<{ id: string }>("select id from photos where id = $1", [id]);
   if (!photos[0]) return errorJson("Photo not found", 404);
@@ -64,13 +60,11 @@ export async function POST(
     {
       comment: {
         id: commentId,
-        userId: viewer.id,
         userName: viewer.name,
         body: text,
         createdAt: new Date().toISOString(),
       },
     },
     { status: 201 },
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
   );
 }

@@ -1,8 +1,8 @@
 import { sql } from "@/lib/db";
 import { clampText, errorJson, json } from "@/lib/http";
 import { parseDataUrl } from "@/lib/image";
-import { getSpot, serializePhoto, type PhotoRow } from "@/lib/spots";
-import { getViewer } from "@/lib/viewer";
+import { countUserPhotos, getSpot, PHOTO_CAP, serializePhoto, type PhotoRow } from "@/lib/spots";
+import { requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   const { id } = await params;
   const spot = await getSpot(id);
   if (!spot) return errorJson("Spot not found", 404);
@@ -24,6 +25,14 @@ export async function POST(
   if (!body || typeof body !== "object") return errorJson("Invalid body");
   const input = body as Record<string, unknown>;
   const kind = input.kind === "trick" ? "trick" : "spot";
+  const used = await countUserPhotos(id, viewer.id, kind);
+  if (used >= PHOTO_CAP) {
+    return errorJson(
+      kind === "trick"
+        ? "You can upload 5 trick photos at this spot"
+        : "You can upload 5 spot photos at this spot",
+    );
+  }
   const caption = clampText(input.caption, 240);
   let parsed;
   try {
@@ -49,9 +58,5 @@ export async function POST(
      from photos p where p.id = $1`,
     [photoId],
   );
-  return json(
-    { photo: serializePhoto(rows[0]) },
-    { status: 201 },
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
-  );
+  return json({ photo: serializePhoto(rows[0]) }, { status: 201 });
 }

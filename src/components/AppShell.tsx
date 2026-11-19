@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Compass, MapPin, Plus } from "lucide-react";
+import ScreenName from "@/components/ScreenName";
 
 const tabs = [
   { href: "/", label: "Spots", icon: MapPin },
@@ -15,19 +16,24 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh">
       <div className="grain" />
-      <header className="sticky top-0 z-30 border-b border-line bg-ink/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/" className="leading-none">
-            <div className="font-display text-3xl tracking-wide text-paper">SKATESPOTTER</div>
-            <div className="mt-0.5 text-[11px] uppercase tracking-[0.28em] text-mute">
-              log it · skate it · share it
+      <header className="sticky top-0 z-30 border-b border-line bg-ink/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+        <div className="mx-auto flex max-w-lg items-center px-4 py-2.5 md:max-w-6xl">
+          <Link href="/" className="min-w-0 leading-none">
+            <div className="font-display text-[1.75rem] tracking-wide text-paper sm:text-3xl">
+              SKATESPOTTER
+            </div>
+            <div className="mt-0.5 text-[11px] leading-tight tracking-wide text-mute">
+              Skate it - Log it - Share it
             </div>
           </Link>
+          <ScreenName />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl pb-28">{children}</main>
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-ink/92 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur">
-        <div className="mx-auto grid max-w-md grid-cols-3 px-2 py-2">
+      <main className="mx-auto w-full max-w-lg pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:max-w-6xl">
+        {children}
+      </main>
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-line bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+        <div className="mx-auto grid max-w-lg grid-cols-3 px-2 pt-1">
           {tabs.map((tab) => {
             const active =
               tab.href === "/"
@@ -39,20 +45,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex flex-col items-center gap-1 rounded-2xl py-1.5 text-[11px] uppercase tracking-[0.16em] ${
-                  add
-                    ? "text-blaze"
-                    : active
-                      ? "text-paper"
-                      : "text-mute"
+                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] uppercase tracking-[0.14em] ${
+                  add ? "text-blaze" : active ? "text-paper" : "text-mute"
                 }`}
               >
                 <span
-                  className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  className={`flex h-11 w-11 items-center justify-center rounded-full ${
                     add ? "bg-blaze text-ink" : active ? "bg-elev text-paper" : "bg-transparent"
                   }`}
                 >
-                  <Icon size={18} strokeWidth={2.2} />
+                  <Icon size={20} strokeWidth={2.2} />
                 </span>
                 {tab.label}
               </Link>

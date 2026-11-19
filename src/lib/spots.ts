@@ -1,7 +1,10 @@
 import "server-only";
 import { sql } from "./db";
+import { PHOTO_CAP } from "./limits";
 import { displaySpotName } from "./spotName";
 import { isoWeekStartUtc } from "./week";
+
+export { PHOTO_CAP };
 
 export type PhotoKind = "spot" | "trick";
 
@@ -47,7 +50,6 @@ export function serializeSpot(row: SpotRow) {
     streetAddress: row.street_address,
     buildingName: row.building_name,
     commonName: row.common_name,
-    commonNameLoggedBy: row.common_name_logged_by,
     name: displaySpotName({
       commonName: row.common_name,
       buildingName: row.building_name,
@@ -55,7 +57,6 @@ export function serializeSpot(row: SpotRow) {
     }),
     nameIsCommon: Boolean(row.common_name),
     description: row.description,
-    createdBy: row.created_by,
     createdByName: row.created_by_name,
     createdAt: row.created_at,
     coverPhotoId: row.cover_photo_id,
@@ -70,7 +71,6 @@ export function serializePhoto(row: PhotoRow) {
     spotId: row.spot_id,
     kind: row.kind,
     caption: row.caption,
-    createdBy: row.created_by,
     createdByName: row.created_by_name,
     createdAt: row.created_at,
     url: photoUrl(row.id),
@@ -78,6 +78,14 @@ export function serializePhoto(row: PhotoRow) {
     likedByMe: Boolean(row.liked_by_me),
     commentCount: Number(row.comment_count) || 0,
   };
+}
+
+export async function countUserPhotos(spotId: string, userId: string, kind: PhotoKind) {
+  const rows = await sql<{ n: number }>(
+    "select count(*)::int as n from photos where spot_id = $1 and created_by = $2 and kind = $3",
+    [spotId, userId, kind],
+  );
+  return rows[0]?.n ?? 0;
 }
 
 export async function getSpot(id: string): Promise<SpotRow | null> {

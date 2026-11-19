@@ -1,14 +1,16 @@
 import { sql } from "@/lib/db";
-import { reverseGeocode } from "@/lib/geoServer";
+import { formatCoordAddress, haversine } from "@/lib/geo";
 import { clampText, errorJson, json, parseCoord, validLatLng } from "@/lib/http";
 import { parseDataUrl } from "@/lib/image";
-import { serializeSpot, type SpotRow } from "@/lib/spots";
-import { getViewer } from "@/lib/viewer";
+import { SPOTS_PER_HOUR } from "@/lib/limits";
+import { PHOTO_CAP, serializeSpot, type SpotRow } from "@/lib/spots";
+import { requireSignedIn, requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const viewer = await getViewer(request);
+  const denied = await requireSignedIn(request);
+  if (denied) return denied;
   const url = new URL(request.url);
   const q = clampText(url.searchParams.get("q"), 120).toLowerCase();
   const lat = parseCoord(url.searchParams.get("lat"));
@@ -35,15 +37,12 @@ export async function GET(request: Request) {
       }))
       .sort((a, b) => (a.distanceMeters ?? 0) - (b.distanceMeters ?? 0));
   }
-  return json(
-    { spots },
-    {},
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
-  );
+  return json({ spots });
 }
 
 export async function POST(request: Request) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   let body: unknown;
   try {
     body = await request.json();
@@ -57,8 +56,16 @@ export async function POST(request: Request) {
   if (lat === null || lng === null || !validLatLng(lat, lng)) {
     return errorJson("A GPS pin is required");
   }
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const recent = await sql<{ n: number }>(
+    "select count(*)::int as n from spots where created_by = $1 and created_at > $2",
+    [viewer.id, since],
+  );
+  if ((recent[0]?.n ?? 0) >= SPOTS_PER_HOUR) {
+    return errorJson(`You can log ${SPOTS_PER_HOUR} spots per hour. Try again in a bit.`, 429);
+  }
   const description = clampText(input.description, 2000);
-  const photosIn = Array.isArray(input.photos) ? input.photos.slice(0, 6) : [];
+  const photosIn = Array.isArray(input.photos) ? input.photos.slice(0, PHOTO_CAP) : [];
   const parsedPhotos = [];
   try {
     for (const photo of photosIn) {
@@ -73,17 +80,8 @@ export async function POST(request: Request) {
     return errorJson(error instanceof Error ? error.message : "Could not read photo");
   }
 
-  let streetAddress = clampText(input.streetAddress, 200);
-  let buildingName = clampText(input.buildingName, 120) || null;
-  if (!streetAddress) {
-    try {
-      const geo = await reverseGeocode(lat, lng);
-      streetAddress = geo.streetAddress;
-      buildingName = buildingName || geo.buildingName;
-    } catch {
-      streetAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    }
-  }
+  const streetAddress = clampText(input.streetAddress, 200) || formatCoordAddress(lat, lng);
+  const buildingName = clampText(input.buildingName, 120) || null;
 
   const id = crypto.randomUUID();
   await sql(
@@ -109,19 +107,5 @@ export async function POST(request: Request) {
   }
 
   const created = await sql<SpotRow>("select * from spots where id = $1", [id]);
-  return json(
-    { spot: serializeSpot(created[0]) },
-    { status: 201 },
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
-  );
-}
-
-function haversine(lat1: number, lng1: number, lat2: number, lng2: number) {
-  const toRad = (n: number) => (n * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return json({ spot: serializeSpot(created[0]) }, { status: 201 });
 }

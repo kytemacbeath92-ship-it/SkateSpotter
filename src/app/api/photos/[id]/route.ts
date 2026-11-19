@@ -1,12 +1,15 @@
 import { asBuffer, sql } from "@/lib/db";
 import { errorJson } from "@/lib/http";
+import { requireSignedIn } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireSignedIn(request);
+  if (denied) return denied;
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     return errorJson("Not found", 404);

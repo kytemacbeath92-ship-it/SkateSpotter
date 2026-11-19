@@ -60,7 +60,7 @@ export default function MapView({
         zoomControl: false,
         attributionControl: true,
       }).setView([center.lat, center.lng], zoom);
-      L.control.zoom({ position: "bottomright" }).addTo(map);
+      L.control.zoom({ position: "topright" }).addTo(map);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "&copy; OpenStreetMap",
         className: "sk-tiles",
@@ -83,6 +83,16 @@ export default function MapView({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const el = host.current;
+    if (!map || !el) return;
+    map.invalidateSize();
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ready]);
 
   useEffect(() => {
     const map = mapRef.current;

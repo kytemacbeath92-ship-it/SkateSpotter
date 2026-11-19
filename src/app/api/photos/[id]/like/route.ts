@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 import { errorJson, json } from "@/lib/http";
-import { getViewer } from "@/lib/viewer";
+import { requireViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const viewer = await getViewer(request);
+  const viewer = await requireViewer(request);
+  if (viewer instanceof Response) return viewer;
   const { id } = await params;
   const photos = await sql<{ id: string }>("select id from photos where id = $1", [id]);
   if (!photos[0]) return errorJson("Photo not found", 404);
@@ -26,9 +27,5 @@ export async function POST(
     "select count(*)::int as n from likes where photo_id = $1",
     [id],
   );
-  return json(
-    { liked: !existing[0], likeCount: count[0]?.n ?? 0 },
-    {},
-    viewer.setCookie ? { "set-cookie": viewer.setCookie } : undefined,
-  );
+  return json({ liked: !existing[0], likeCount: count[0]?.n ?? 0 });
 }

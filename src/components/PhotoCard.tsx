@@ -66,25 +66,29 @@ export default function PhotoCard({ photo, badge, onChanged, extra }: Props) {
   }
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-line bg-elev">
+    <article className="overflow-hidden rounded-2xl border border-line bg-elev sm:rounded-3xl">
       <div className="relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo.url} alt={photo.caption || "Spot photo"} className="aspect-[4/5] w-full object-cover" />
+        <img
+          src={photo.url}
+          alt={photo.caption || "Spot photo"}
+          className="aspect-[4/5] w-full object-cover sm:aspect-square"
+        />
         {badge ? (
           <div className="absolute left-3 top-3 rounded-full bg-gold px-3 py-1 font-display text-sm tracking-wide text-ink">
             {badge}
           </div>
         ) : null}
       </div>
-      <div className="flex items-center gap-1 px-2 py-2">
+      <div className="flex items-center gap-1 px-1 py-1">
         <button
           type="button"
           onClick={toggleLike}
-          className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm ${
+          className={`flex min-h-11 min-w-11 items-center gap-1.5 rounded-full px-3 text-sm ${
             photo.likedByMe ? "text-blaze" : "text-paper"
           }`}
         >
-          <Heart size={18} fill={photo.likedByMe ? "currentColor" : "none"} />
+          <Heart size={20} fill={photo.likedByMe ? "currentColor" : "none"} />
           {photo.likeCount}
         </button>
         <button
@@ -103,20 +107,20 @@ export default function PhotoCard({ photo, badge, onChanged, extra }: Props) {
               return next;
             })
           }
-          className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm text-paper"
+          className="flex min-h-11 min-w-11 items-center gap-1.5 rounded-full px-3 text-sm text-paper"
         >
-          <MessageCircle size={18} />
+          <MessageCircle size={20} />
           {photo.commentCount}
         </button>
         <button
           type="button"
           onClick={share}
-          className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm text-paper"
+          className="flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm text-paper"
         >
-          <Share2 size={18} />
+          <Share2 size={20} />
           {copied ? "Copied" : "Share"}
         </button>
-        <div className="ml-auto">{extra}</div>
+        <div className="ml-auto shrink-0">{extra}</div>
       </div>
       <div className="px-4 pb-4">
         <p className="text-sm text-mute">
@@ -124,7 +128,7 @@ export default function PhotoCard({ photo, badge, onChanged, extra }: Props) {
           {photo.caption ? ` ${photo.caption}` : ""}
         </p>
         {open ? (
-          <div id={`comments-${photo.id}`} className="mt-3 mb-8 space-y-2">
+          <div id={`comments-${photo.id}`} className="mt-3 space-y-2">
             {comments.map((comment) => (
               <p key={comment.id} className="text-sm">
                 <span className="font-medium">{comment.userName}</span>{" "}
@@ -139,11 +143,11 @@ export default function PhotoCard({ photo, badge, onChanged, extra }: Props) {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Write a comment…"
-                className="flex-1 rounded-full border border-line bg-ink px-4 py-2 text-sm outline-none placeholder:text-mute"
+                className="min-h-11 min-w-0 flex-1 rounded-full border border-line bg-ink px-4 text-base outline-none placeholder:text-mute"
               />
               <button
                 disabled={busy}
-                className="rounded-full bg-paper px-3 py-2 text-xs font-medium uppercase tracking-wider text-ink"
+                className="min-h-11 rounded-full bg-paper px-4 text-sm font-medium text-ink"
               >
                 Post
               </button>

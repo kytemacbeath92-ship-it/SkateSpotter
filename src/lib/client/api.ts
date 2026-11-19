@@ -11,8 +11,6 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (init.body && !headers.has("content-type")) {
     headers.set("content-type", "application/json");
   }
-  const name = localStorage.getItem("skatespotter-name");
-  if (name) headers.set("x-display-name", name);
   const res = await fetch(path, { ...init, headers, cache: "no-store" });
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
