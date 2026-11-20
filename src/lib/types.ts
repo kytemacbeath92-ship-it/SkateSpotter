@@ -9,6 +9,7 @@ export type Spot = {
   nameIsCommon: boolean;
   description: string;
   spotType: string;
+  stoppers: string;
   security: string;
   createdByName: string;
   createdAt: string;

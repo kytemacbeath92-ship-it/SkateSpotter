@@ -163,11 +163,15 @@ export default function SpotDetail({
             Waiting for someone else to log a common name. Until then this is the street or building.
           </p>
         )}
-        {spot.spotType || spot.security ? (
-          <div className="mt-3 grid grid-cols-2 gap-3">
+        {spot.spotType || spot.stoppers || spot.security ? (
+          <div className="mt-3 grid grid-cols-3 gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-mute">Type of spot</p>
               <p className="mt-1 text-sm">{spot.spotType || "Not set"}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-mute">Stoppers</p>
+              <p className="mt-1 text-sm">{spot.stoppers || "Not set"}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-mute">Security</p>

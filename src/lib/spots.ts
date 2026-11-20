@@ -32,6 +32,7 @@ export type SpotRow = {
   common_name_logged_by: string | null;
   description: string;
   spot_type: string;
+  stoppers: string;
   security: string;
   created_by: string;
   created_by_name: string;
@@ -60,6 +61,7 @@ export function serializeSpot(row: SpotRow) {
     nameIsCommon: Boolean(row.common_name),
     description: row.description,
     spotType: row.spot_type || "",
+    stoppers: row.stoppers || "",
     security: row.security || "",
     createdByName: row.created_by_name,
     createdAt: row.created_at,
