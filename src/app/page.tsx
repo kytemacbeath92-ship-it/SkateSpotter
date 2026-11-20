@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import MapView from "@/components/MapView";
 import { api } from "@/lib/client/api";
 import { formatDistance, getGps, type Coord } from "@/lib/client/geo";
+import { spotMetaLine } from "@/lib/spotMeta";
 import type { Spot } from "@/lib/types";
 
 export default function HomePage() {
@@ -104,6 +105,9 @@ export default function HomePage() {
                 <p className="mt-1 truncate text-xs text-mute">
                   {spot.nameIsCommon ? spot.streetAddress : "Street name until someone logs a common name"}
                 </p>
+                {spotMetaLine(spot) ? (
+                  <p className="mt-1 truncate text-xs uppercase tracking-widest text-gold">{spotMetaLine(spot)}</p>
+                ) : null}
                 <p className="mt-1.5 line-clamp-2 text-sm text-mute">{spot.description || "No description yet."}</p>
                 {spot.distanceMeters != null ? (
                   <p className="mt-1.5 text-xs uppercase tracking-widest text-gold">

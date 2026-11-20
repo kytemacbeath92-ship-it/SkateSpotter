@@ -8,6 +8,8 @@ export type Spot = {
   name: string;
   nameIsCommon: boolean;
   description: string;
+  spotType: string;
+  security: string;
   createdByName: string;
   createdAt: string;
   coverPhotoId: string | null;

@@ -3,6 +3,7 @@ import { formatCoordAddress, haversine } from "@/lib/geo";
 import { clampText, errorJson, json, parseCoord, validLatLng } from "@/lib/http";
 import { parseDataUrl } from "@/lib/image";
 import { SPOTS_PER_HOUR } from "@/lib/limits";
+import { parseSecurity, parseSpotType } from "@/lib/spotMeta";
 import { PHOTO_CAP, serializeSpot, type SpotRow } from "@/lib/spots";
 import { requireSignedIn, requireViewer } from "@/lib/viewer";
 
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   let spots = rows.map(serializeSpot);
   if (q) {
     spots = spots.filter((spot) =>
-      [spot.name, spot.streetAddress, spot.buildingName, spot.description]
+      [spot.name, spot.streetAddress, spot.buildingName, spot.description, spot.spotType, spot.security]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
@@ -65,6 +66,10 @@ export async function POST(request: Request) {
     return errorJson(`You can log ${SPOTS_PER_HOUR} spots per hour. Try again in a bit.`, 429);
   }
   const description = clampText(input.description, 2000);
+  const spotType = parseSpotType(input.spotType);
+  const security = parseSecurity(input.security);
+  if (!spotType) return errorJson("Choose a type of spot");
+  if (!security) return errorJson("Choose a security level");
   const photosIn = Array.isArray(input.photos) ? input.photos.slice(0, PHOTO_CAP) : [];
   const parsedPhotos = [];
   try {
@@ -87,9 +92,9 @@ export async function POST(request: Request) {
   await sql(
     `insert into spots (
        id, lat, lng, street_address, building_name, description,
-       created_by, created_by_name
-     ) values ($1,$2,$3,$4,$5,$6,$7,$8)`,
-    [id, lat, lng, streetAddress, buildingName, description, viewer.id, viewer.name],
+       spot_type, security, created_by, created_by_name
+     ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    [id, lat, lng, streetAddress, buildingName, description, spotType, security, viewer.id, viewer.name],
   );
 
   let coverPhotoId: string | null = null;
