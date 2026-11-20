@@ -2,13 +2,14 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, LocateFixed, MapPin } from "lucide-react";
+import { Camera, ChevronDown, LocateFixed, MapPin } from "lucide-react";
 import MapView from "@/components/MapView";
 import { api } from "@/lib/client/api";
 import { getGps, type Coord } from "@/lib/client/geo";
 import { formatCoordAddress } from "@/lib/geo";
 import { fileToDataUrl } from "@/lib/client/image";
 import { PHOTO_CAP } from "@/lib/limits";
+import { SECURITY_LEVELS, SPOT_TYPES, STOPPERS } from "@/lib/spotMeta";
 import type { Spot } from "@/lib/types";
 
 type DraftPhoto = { dataUrl: string; caption: string };
@@ -20,6 +21,9 @@ export default function AddPage() {
   const [address, setAddress] = useState("");
   const [building, setBuilding] = useState<string | null>(null);
   const [description, setDescription] = useState("");
+  const [spotType, setSpotType] = useState("");
+  const [stoppers, setStoppers] = useState("");
+  const [security, setSecurity] = useState("");
   const [photos, setPhotos] = useState<DraftPhoto[]>([]);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("Use GPS or tap the map to lock the spot.");
@@ -66,6 +70,18 @@ export default function AddPage() {
       setError("Add a location with GPS or tap the map first.");
       return;
     }
+    if (!spotType) {
+      setError("Choose a type of spot.");
+      return;
+    }
+    if (!stoppers) {
+      setError("Choose whether the spot has stoppers.");
+      return;
+    }
+    if (!security) {
+      setError("Choose a security level.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -75,6 +91,9 @@ export default function AddPage() {
           lat: pin.lat,
           lng: pin.lng,
           description,
+          spotType,
+          stoppers,
+          security,
           streetAddress: address,
           buildingName: building,
           photos,
@@ -179,6 +198,63 @@ export default function AddPage() {
             ))}
           </div>
         ) : null}
+        <label className="block">
+          <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-mute">Type of spot</span>
+          <span className="relative block">
+            <select
+              value={spotType}
+              onChange={(e) => setSpotType(e.target.value)}
+              required
+              className="min-h-12 w-full appearance-none rounded-full border border-line bg-ink px-4 pr-10 text-base outline-none"
+            >
+              <option value="">Choose type</option>
+              {SPOT_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-mute" />
+          </span>
+        </label>
+        <label className="block">
+          <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-mute">Stoppers</span>
+          <span className="relative block">
+            <select
+              value={stoppers}
+              onChange={(e) => setStoppers(e.target.value)}
+              required
+              className="min-h-12 w-full appearance-none rounded-full border border-line bg-ink px-4 pr-10 text-base outline-none"
+            >
+              <option value="">Choose stoppers</option>
+              {STOPPERS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-mute" />
+          </span>
+        </label>
+        <label className="block">
+          <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-mute">Security</span>
+          <span className="relative block">
+            <select
+              value={security}
+              onChange={(e) => setSecurity(e.target.value)}
+              required
+              className="min-h-12 w-full appearance-none rounded-full border border-line bg-ink px-4 pr-10 text-base outline-none"
+            >
+              <option value="">Choose security</option>
+              {SECURITY_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-mute" />
+          </span>
+        </label>
         <label className="block">
           <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-mute">Description</span>
           <textarea

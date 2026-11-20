@@ -15,6 +15,7 @@ import {
   type Coord,
 } from "@/lib/client/geo";
 import { localRoute } from "@/lib/geo";
+import { spotMetaLine } from "@/lib/spotMeta";
 import type { RouteInfo, Spot } from "@/lib/types";
 
 export default function FindPage() {
@@ -176,6 +177,9 @@ function FindPageInner() {
           <div className="rounded-2xl border border-blaze/40 bg-panel p-4 sm:rounded-3xl">
             <div className="text-xs uppercase tracking-[0.2em] text-gold">Quickest route</div>
             <div className="mt-1 break-words font-display text-3xl leading-none">{selected.name}</div>
+            {spotMetaLine(selected) ? (
+              <p className="mt-1 text-xs uppercase tracking-widest text-gold">{spotMetaLine(selected)}</p>
+            ) : null}
             <p className="mt-2 text-sm">
               {formatDistance(route.distanceMeters)} · {formatDuration(route.durationSeconds)}
             </p>
@@ -229,6 +233,9 @@ function FindPageInner() {
               <div className="min-w-0">
                 <div className="truncate font-display text-[1.55rem] leading-none">{spot.name}</div>
                 <p className="truncate text-xs text-mute">{spot.streetAddress}</p>
+                {spotMetaLine(spot) ? (
+                  <p className="truncate text-xs uppercase tracking-widest text-gold">{spotMetaLine(spot)}</p>
+                ) : null}
                 {spot.distanceMeters != null ? (
                   <p className="text-xs text-gold">{formatDistance(spot.distanceMeters)}</p>
                 ) : null}
